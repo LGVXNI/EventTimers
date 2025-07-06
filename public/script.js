@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/timers';
+const API_URL = '/api/timers'; // ✅ Use relative URL for compatibility on Render
 
 document.addEventListener('DOMContentLoaded', () => {
     loadTimers();
@@ -20,6 +20,9 @@ document.getElementById('timerForm').addEventListener('submit', function (e) {
         loadTimers();
         document.getElementById('name').value = '';
         document.getElementById('duration').value = '';
+    })
+    .catch(err => {
+        console.error('Error creating timer:', err);
     });
 });
 
@@ -62,6 +65,9 @@ function loadTimers() {
                     }
                 }, 1000);
             });
+        })
+        .catch(err => {
+            console.error('Error loading timers:', err);
         });
 }
 
@@ -74,11 +80,15 @@ function updateTimerDisplay(element, name, ms) {
 function deleteTimer(id) {
     fetch(`${API_URL}/${id}`, {
         method: 'DELETE'
-    }).then(() => loadTimers());
+    })
+    .then(() => loadTimers())
+    .catch(err => {
+        console.error('Error deleting timer:', err);
+    });
 }
 
 function resetTimer(id) {
     fetch(`${API_URL}/${id}/reset`, {
         method: 'PUT'
-    }).then(() => loadTimers());
-}
+    })
+    .then(() => loadTimers(
