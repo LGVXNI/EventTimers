@@ -1,11 +1,189 @@
-.timer-box {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-top: 10px;
-    width: fit-content;
-    background-color: #f9f9f9;
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
 }
 
-button {
-    margin-left: 10px;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  margin: 20px;
+  color: #222;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Grid container for columns */
+.container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 15px;
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  padding: 0 10px;
+}
+
+/* Each column box */
+.column {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  padding: 15px;
+  min-height: 600px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Column header */
+.column h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #0078d7;
+  border-bottom: 2px solid #0078d7;
+  padding-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Individual timer box */
+.timer-box {
+  background: #f9fafb;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.timer-box:hover {
+  background-color: #e6f0ff;
+}
+
+/* Labels and inputs */
+.timer-box label {
+  font-weight: 600;
+  color: #333;
+  user-select: none;
+}
+
+.timer-box input[type="number"],
+.timer-box input[type="text"] {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 15px;
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+.timer-box input[type="number"]:focus,
+.timer-box input[type="text"]:focus {
+  border-color: #0078d7;
+  outline: none;
+}
+
+/* Timer display style */
+.timer-display {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #444;
+  user-select: none;
+  text-align: center;
+}
+
+/* Buttons style */
+button.reset-btn,
+button.delete-btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.25s ease;
+  width: 100%;
+}
+
+button.reset-btn {
+  background-color: #0078d7;
+  color: white;
+}
+
+button.reset-btn:hover {
+  background-color: #005ea3;
+}
+
+button.delete-btn {
+  background-color: #d9534f;
+  color: white;
+}
+
+button.delete-btn:hover {
+  background-color: #a93932;
+}
+
+/* User event add form */
+#addUserEventForm {
+  max-width: 450px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#addUserEventForm input[type="text"],
+#addUserEventForm input[type="number"] {
+  flex: 1;
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border-color 0.2s ease;
+}
+
+#addUserEventForm input[type="text"]:focus,
+#addUserEventForm input[type="number"]:focus {
+  border-color: #0078d7;
+  outline: none;
+}
+
+#addUserEventForm button {
+  background-color: #0078d7;
+  color: white;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+#addUserEventForm button:hover {
+  background-color: #005ea3;
+}
+
+/* Scrollbar styling for columns */
+.column::-webkit-scrollbar {
+  width: 8px;
+}
+
+.column::-webkit-scrollbar-thumb {
+  background-color: #b0b0b0;
+  border-radius: 4px;
+}
+
+.column::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
 }

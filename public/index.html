@@ -1,65 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Event Timer</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 2rem;
-            background: #f5f5f5;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        input, button {
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        .timer-box {
-            background: #fff;
-            padding: 1rem;
-            border: 1px solid #ccc;
-            margin: 1rem auto;
-            width: 300px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        button {
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Event Timer Grid</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 1rem;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+    }
+    .column {
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      min-height: 500px;
+      overflow-y: auto;
+    }
+    .column h2 {
+      text-align: center;
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .timer-box {
+      background: #eef2f7;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 0 3px rgba(0,0,0,0.1);
+    }
+    .timer-box label {
+      font-weight: bold;
+    }
+    .timer-box input[type="number"], 
+    .timer-box input[type="text"] {
+      padding: 6px;
+      font-size: 14px;
+      border-radius: 3px;
+      border: 1px solid #bbb;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .timer-display {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      margin-top: 4px;
+    }
+    button.reset-btn, button.delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 6px;
+      width: 100%;
+    }
+    button.reset-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    button.delete-btn {
+      background-color: #f44336;
+      color: white;
+    }
+    #addUserEventForm {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #addUserEventForm input[type="text"], 
+    #addUserEventForm input[type="number"] {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 3px;
+      border: 1px solid #bbb;
+    }
+    #addUserEventForm button {
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 3px;
+      border: none;
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>Event Timer</h1>
 
-    <form id="timerForm">
-        <label for="name">Timer Name:</label>
-        <input type="text" id="name" required>
+  <h1>Event Timer Grid</h1>
 
-        <label for="duration">Duration (minutes):</label>
-        <input type="number" id="duration" required>
+  <div class="container">
+    <div class="column" id="fixed-events-column">
+      <h2>Fixed Events</h2>
+      <!-- Fixed event timers added dynamically here -->
+    </div>
 
-        <button type="submit">Start Timer</button>
-    </form>
+    <div class="column" id="fixed-events-column-2">
+      <h2>Fixed Events</h2>
+      <!-- We only dynamically add once, so you might want to create 4 separate columns or replicate fixedEvents accordingly -->
+    </div>
 
-    <div id="timerDisplay" style="margin-top: 20px;"></div>
+    <div class="column" id="fixed-events-column-3">
+      <h2>Fixed Events</h2>
+    </div>
 
-    <script src="script.js"></script>
+    <div class="column" id="fixed-events-column-4">
+      <h2>Fixed Events</h2>
+    </div>
+
+    <div class="column" id="fixed-events-column-5">
+      <h2>Fixed Events</h2>
+    </div>
+
+    <div class="column" id="user-events-column">
+      <h2>User Events</h2>
+      <!-- User added timers go here -->
+    </div>
+  </div>
+
+  <form id="addUserEventForm">
+    <input type="text" id="userEventName" placeholder="Event Name" required />
+    <input type="number" id="userEventDuration" placeholder="Duration (minutes)" min="1" required />
+    <button type="submit">Add Event</button>
+  </form>
+
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,106 +1,192 @@
-const API_URL = '/api/timers'; // relative URL for local and deployed usage
+const fixedEvents = [
+  "Server 1 Nars", "Server 1 Medusa", "Server 1 Kundun", "Server 1 Selupant", "Server 1 Ferea", "Server 1 Nixie",
+  "Server 2 Nars", "Server 2 Medusa", "Server 2 Kundun", "Server 2 Selupant", "Server 2 Ferea", "Server 2 Nixie",
+  "Server 3 Nars", "Server 3 Medusa", "Server 3 Kundun", "Server 3 Selupant", "Server 3 Ferea", "Server 3 Nixie",
+  "Server 4 Nars", "Server 4 Medusa", "Server 4 Kundun", "Server 4 Selupant", "Server 4 Ferea", "Server 4 Nixie"
+];
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach submit event listener inside DOMContentLoaded
-    const form = document.getElementById('timerForm');
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+const timers = {};
 
-        const name = document.getElementById('name').value.trim();
-        const duration = parseInt(document.getElementById('duration').value);
+function formatTime(ms) {
+  if (ms <= 0) return "00:00";
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
 
-        if (!name || isNaN(duration) || duration <= 0) {
-            alert('Please enter a valid timer name and a positive duration.');
-            return;
-        }
+function startTimer(eventName, durationMs) {
+  if (timers[eventName]) {
+    clearInterval(timers[eventName].intervalId);
+  }
+  const endTime = Date.now() + durationMs;
+  timers[eventName] = { endTime };
 
-        fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, duration })
-        })
-        .then(res => res.json())
-        .then(() => {
-            loadTimers();
-            form.reset(); // Clear form fields
-        })
-        .catch(err => {
-            console.error('Error creating timer:', err);
-            alert('Failed to create timer. Please try again.');
-        });
-    });
+  const displayEl = document.getElementById(`timer-${eventName}`);
+  if (!displayEl) return;
 
-    loadTimers();
+  function update() {
+    const timeLeft = timers[eventName].endTime - Date.now();
+    if (timeLeft <= 0) {
+      displayEl.textContent = "Time's up!";
+      clearInterval(timers[eventName].intervalId);
+    } else {
+      displayEl.textContent = formatTime(timeLeft);
+    }
+  }
+
+  update();
+  timers[eventName].intervalId = setInterval(update, 1000);
+}
+
+function onResetClick(e) {
+  const eventName = e.target.getAttribute("data-event");
+  if (!eventName) return;
+
+  const box = e.target.closest(".timer-box");
+  const durInput = box.querySelector(".duration-input");
+  const durMin = parseInt(durInput.value);
+
+  if (isNaN(durMin) || durMin <= 0) {
+    alert("Please enter a valid duration to reset/start.");
+    return;
+  }
+  startTimer(eventName, durMin * 60 * 1000);
+}
+
+function addUserEvent(name, duration) {
+  const container = document.getElementById("user-events-column");
+
+  const box = document.createElement("div");
+  box.className = "timer-box";
+  box.setAttribute("data-event", name);
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.value = name;
+  nameInput.className = "user-name-input";
+  nameInput.style.fontWeight = "bold";
+  nameInput.style.marginBottom = "8px";
+  box.appendChild(nameInput);
+
+  const durationInput = document.createElement("input");
+  durationInput.type = "number";
+  durationInput.min = "1";
+  durationInput.value = duration;
+  durationInput.className = "duration-input";
+  durationInput.style.marginBottom = "8px";
+  box.appendChild(durationInput);
+
+  const timerDisplay = document.createElement("div");
+  timerDisplay.className = "timer-display";
+  timerDisplay.id = `timer-${name}`;
+  timerDisplay.textContent = "--:--";
+  box.appendChild(timerDisplay);
+
+  const resetBtn = document.createElement("button");
+  resetBtn.className = "reset-btn";
+  resetBtn.textContent = "Start/Reset";
+  resetBtn.setAttribute("data-event", name);
+  resetBtn.addEventListener("click", onResetClick);
+  box.appendChild(resetBtn);
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.style.marginTop = "6px";
+  deleteBtn.addEventListener("click", () => {
+    clearInterval(timers[name]?.intervalId);
+    delete timers[name];
+    container.removeChild(box);
+  });
+  box.appendChild(deleteBtn);
+
+  container.appendChild(box);
+
+  // No automatic timer start - user must input duration and press Start/Reset
+  nameInput.addEventListener("change", () => {
+    const oldName = name;
+    const newName = nameInput.value.trim();
+    if (!newName) {
+      alert("Event name cannot be empty.");
+      nameInput.value = oldName;
+      return;
+    }
+    if (timers[oldName]) {
+      clearInterval(timers[oldName].intervalId);
+      timers[newName] = timers[oldName];
+      delete timers[oldName];
+    }
+    box.setAttribute("data-event", newName);
+    timerDisplay.id = `timer-${newName}`;
+    resetBtn.setAttribute("data-event", newName);
+    name = newName;
+  });
+}
+
+document.getElementById("addUserEventForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById("userEventName");
+  const durInput = document.getElementById("userEventDuration");
+
+  const name = nameInput.value.trim();
+  const duration = parseInt(durInput.value);
+
+  if (!name) {
+    alert("Please enter an event name.");
+    return;
+  }
+  if (isNaN(duration) || duration <= 0) {
+    alert("Please enter a valid duration (minutes).");
+    return;
+  }
+  if (timers[name]) {
+    alert("An event with this name already exists.");
+    return;
+  }
+
+  addUserEvent(name, duration);
+
+  nameInput.value = "";
+  durInput.value = "";
 });
 
-function loadTimers() {
-    fetch(API_URL)
-        .then(res => res.json())
-        .then(timers => {
-            const display = document.getElementById('timerDisplay');
-            display.innerHTML = '';
+// Initialize fixed events: just create boxes with empty timers and inputs
+window.addEventListener("DOMContentLoaded", () => {
+  fixedEvents.forEach(eventName => {
+    const container = document.getElementById("fixed-events-column");
 
-            timers.forEach(timer => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'timer-box';
-                wrapper.setAttribute('data-id', timer.id);
+    const box = document.createElement("div");
+    box.className = "timer-box";
+    box.setAttribute("data-event", eventName);
 
-                const label = document.createElement('span');
-                wrapper.appendChild(label);
+    const label = document.createElement("label");
+    label.textContent = eventName;
+    label.style.fontWeight = "bold";
+    box.appendChild(label);
 
-                const resetBtn = document.createElement('button');
-                resetBtn.textContent = 'Reset';
-                resetBtn.onclick = () => resetTimer(timer.id);
+    const durationInput = document.createElement("input");
+    durationInput.type = "number";
+    durationInput.min = "1";
+    durationInput.placeholder = "Minutes";
+    durationInput.className = "duration-input";
+    durationInput.style.marginLeft = "8px";
+    box.appendChild(durationInput);
 
-                const delBtn = document.createElement('button');
-                delBtn.textContent = 'Delete';
-                delBtn.onclick = () => deleteTimer(timer.id);
+    const timerDisplay = document.createElement("div");
+    timerDisplay.className = "timer-display";
+    timerDisplay.id = `timer-${eventName}`;
+    timerDisplay.textContent = "--:--";
+    timerDisplay.style.marginLeft = "8px";
+    box.appendChild(timerDisplay);
 
-                wrapper.appendChild(resetBtn);
-                wrapper.appendChild(delBtn);
-                display.appendChild(wrapper);
+    const resetBtn = document.createElement("button");
+    resetBtn.className = "reset-btn";
+    resetBtn.textContent = "Start/Reset";
+    resetBtn.setAttribute("data-event", eventName);
+    resetBtn.style.marginLeft = "8px";
+    resetBtn.addEventListener("click", onResetClick);
+    box.appendChild(resetBtn);
 
-                updateTimerDisplay(label, timer.name, timer.timeLeft);
-
-                // Update every second
-                const interval = setInterval(() => {
-                    timer.timeLeft -= 1000;
-                    if (timer.timeLeft <= 0) {
-                        clearInterval(interval);
-                        label.textContent = `${timer.name}: Time's up!`;
-                    } else {
-                        updateTimerDisplay(label, timer.name, timer.timeLeft);
-                    }
-                }, 1000);
-            });
-        })
-        .catch(err => {
-            console.error('Error loading timers:', err);
-            const display = document.getElementById('timerDisplay');
-            display.innerHTML = '<p style="color:red;">Failed to load timers.</p>';
-        });
-}
-
-function updateTimerDisplay(element, name, ms) {
-    const mins = Math.floor(ms / 60000);
-    const secs = Math.floor((ms % 60000) / 1000);
-    element.textContent = `${name}: ${mins}m ${secs}s remaining`;
-}
-
-function deleteTimer(id) {
-    fetch(`${API_URL}/${id}`, { method: 'DELETE' })
-        .then(() => loadTimers())
-        .catch(err => {
-            console.error('Error deleting timer:', err);
-            alert('Failed to delete timer.');
-        });
-}
-
-function resetTimer(id) {
-    fetch(`${API_URL}/${id}/reset`, { method: 'PUT' })
-        .then(() => loadTimers())
-        .catch(err => {
-            console.error('Error resetting timer:', err);
-            alert('Failed to reset timer.');
-        });
-}
+    container.appendChild(box);
+  });
+});
