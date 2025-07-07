@@ -1,192 +1,93 @@
-const fixedEvents = [
-  "Server 1 Nars", "Server 1 Medusa", "Server 1 Kundun", "Server 1 Selupant", "Server 1 Ferea", "Server 1 Nixie",
-  "Server 2 Nars", "Server 2 Medusa", "Server 2 Kundun", "Server 2 Selupant", "Server 2 Ferea", "Server 2 Nixie",
-  "Server 3 Nars", "Server 3 Medusa", "Server 3 Kundun", "Server 3 Selupant", "Server 3 Ferea", "Server 3 Nixie",
-  "Server 4 Nars", "Server 4 Medusa", "Server 4 Kundun", "Server 4 Selupant", "Server 4 Ferea", "Server 4 Nixie"
-];
+document.addEventListener('DOMContentLoaded', () => {
+  // Store interval IDs for each timer box to control individually
+  const timers = new Map();
 
-const timers = {};
-
-function formatTime(ms) {
-  if (ms <= 0) return "00:00";
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
-}
-
-function startTimer(eventName, durationMs) {
-  if (timers[eventName]) {
-    clearInterval(timers[eventName].intervalId);
+  // Helper to format milliseconds to "MM:SS"
+  function formatTime(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
-  const endTime = Date.now() + durationMs;
-  timers[eventName] = { endTime };
 
-  const displayEl = document.getElementById(`timer-${eventName}`);
-  if (!displayEl) return;
+  // Flash threshold in ms (3 minutes)
+  const FLASH_THRESHOLD = 3 * 60 * 1000;
 
-  function update() {
-    const timeLeft = timers[eventName].endTime - Date.now();
-    if (timeLeft <= 0) {
-      displayEl.textContent = "Time's up!";
-      clearInterval(timers[eventName].intervalId);
-    } else {
-      displayEl.textContent = formatTime(timeLeft);
+  // Select all timer boxes
+  document.querySelectorAll('.timer-box').forEach(box => {
+    const input = box.querySelector('.input-time');
+    const timeDisplay = box.querySelector('.time');
+    const startBtn = box.querySelector('.start');
+    const pauseBtn = box.querySelector('.pause');
+    const resetBtn = box.querySelector('.reset');
+
+    let remainingTime = 0;
+    let intervalId = null;
+    let isPaused = true;
+
+    function updateDisplay() {
+      timeDisplay.textContent = formatTime(remainingTime);
+      // Handle flashing effect
+      if (remainingTime <= FLASH_THRESHOLD && remainingTime > 0) {
+        timeDisplay.classList.add('flashing');
+      } else {
+        timeDisplay.classList.remove('flashing');
+      }
     }
-  }
 
-  update();
-  timers[eventName].intervalId = setInterval(update, 1000);
-}
-
-function onResetClick(e) {
-  const eventName = e.target.getAttribute("data-event");
-  if (!eventName) return;
-
-  const box = e.target.closest(".timer-box");
-  const durInput = box.querySelector(".duration-input");
-  const durMin = parseInt(durInput.value);
-
-  if (isNaN(durMin) || durMin <= 0) {
-    alert("Please enter a valid duration to reset/start.");
-    return;
-  }
-  startTimer(eventName, durMin * 60 * 1000);
-}
-
-function addUserEvent(name, duration) {
-  const container = document.getElementById("user-events-column");
-
-  const box = document.createElement("div");
-  box.className = "timer-box";
-  box.setAttribute("data-event", name);
-
-  const nameInput = document.createElement("input");
-  nameInput.type = "text";
-  nameInput.value = name;
-  nameInput.className = "user-name-input";
-  nameInput.style.fontWeight = "bold";
-  nameInput.style.marginBottom = "8px";
-  box.appendChild(nameInput);
-
-  const durationInput = document.createElement("input");
-  durationInput.type = "number";
-  durationInput.min = "1";
-  durationInput.value = duration;
-  durationInput.className = "duration-input";
-  durationInput.style.marginBottom = "8px";
-  box.appendChild(durationInput);
-
-  const timerDisplay = document.createElement("div");
-  timerDisplay.className = "timer-display";
-  timerDisplay.id = `timer-${name}`;
-  timerDisplay.textContent = "--:--";
-  box.appendChild(timerDisplay);
-
-  const resetBtn = document.createElement("button");
-  resetBtn.className = "reset-btn";
-  resetBtn.textContent = "Start/Reset";
-  resetBtn.setAttribute("data-event", name);
-  resetBtn.addEventListener("click", onResetClick);
-  box.appendChild(resetBtn);
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "Delete";
-  deleteBtn.style.marginTop = "6px";
-  deleteBtn.addEventListener("click", () => {
-    clearInterval(timers[name]?.intervalId);
-    delete timers[name];
-    container.removeChild(box);
-  });
-  box.appendChild(deleteBtn);
-
-  container.appendChild(box);
-
-  // No automatic timer start - user must input duration and press Start/Reset
-  nameInput.addEventListener("change", () => {
-    const oldName = name;
-    const newName = nameInput.value.trim();
-    if (!newName) {
-      alert("Event name cannot be empty.");
-      nameInput.value = oldName;
-      return;
+    function tick() {
+      if (!isPaused) {
+        remainingTime -= 1000;
+        if (remainingTime <= 0) {
+          remainingTime = 0;
+          clearInterval(intervalId);
+          intervalId = null;
+          isPaused = true;
+          updateDisplay();
+          // Optional: alert or notify timer ended here
+        } else {
+          updateDisplay();
+        }
+      }
     }
-    if (timers[oldName]) {
-      clearInterval(timers[oldName].intervalId);
-      timers[newName] = timers[oldName];
-      delete timers[oldName];
-    }
-    box.setAttribute("data-event", newName);
-    timerDisplay.id = `timer-${newName}`;
-    resetBtn.setAttribute("data-event", newName);
-    name = newName;
-  });
-}
 
-document.getElementById("addUserEventForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const nameInput = document.getElementById("userEventName");
-  const durInput = document.getElementById("userEventDuration");
+    startBtn.addEventListener('click', () => {
+      // If timer not running, start it
+      if (intervalId === null) {
+        // If first start or after reset, get value from input
+        if (remainingTime <= 0) {
+          const minutes = parseInt(input.value);
+          if (isNaN(minutes) || minutes <= 0) {
+            alert('Please enter a positive number of minutes');
+            return;
+          }
+          remainingTime = minutes * 60 * 1000;
+          updateDisplay();
+        }
+        isPaused = false;
+        intervalId = setInterval(tick, 1000);
+      } else {
+        // Resume if paused
+        if (isPaused) {
+          isPaused = false;
+        }
+      }
+    });
 
-  const name = nameInput.value.trim();
-  const duration = parseInt(durInput.value);
+    pauseBtn.addEventListener('click', () => {
+      isPaused = true;
+    });
 
-  if (!name) {
-    alert("Please enter an event name.");
-    return;
-  }
-  if (isNaN(duration) || duration <= 0) {
-    alert("Please enter a valid duration (minutes).");
-    return;
-  }
-  if (timers[name]) {
-    alert("An event with this name already exists.");
-    return;
-  }
+    resetBtn.addEventListener('click', () => {
+      isPaused = true;
+      clearInterval(intervalId);
+      intervalId = null;
+      remainingTime = 0;
+      updateDisplay();
+      input.value = '';
+    });
 
-  addUserEvent(name, duration);
-
-  nameInput.value = "";
-  durInput.value = "";
-});
-
-// Initialize fixed events: just create boxes with empty timers and inputs
-window.addEventListener("DOMContentLoaded", () => {
-  fixedEvents.forEach(eventName => {
-    const container = document.getElementById("fixed-events-column");
-
-    const box = document.createElement("div");
-    box.className = "timer-box";
-    box.setAttribute("data-event", eventName);
-
-    const label = document.createElement("label");
-    label.textContent = eventName;
-    label.style.fontWeight = "bold";
-    box.appendChild(label);
-
-    const durationInput = document.createElement("input");
-    durationInput.type = "number";
-    durationInput.min = "1";
-    durationInput.placeholder = "Minutes";
-    durationInput.className = "duration-input";
-    durationInput.style.marginLeft = "8px";
-    box.appendChild(durationInput);
-
-    const timerDisplay = document.createElement("div");
-    timerDisplay.className = "timer-display";
-    timerDisplay.id = `timer-${eventName}`;
-    timerDisplay.textContent = "--:--";
-    timerDisplay.style.marginLeft = "8px";
-    box.appendChild(timerDisplay);
-
-    const resetBtn = document.createElement("button");
-    resetBtn.className = "reset-btn";
-    resetBtn.textContent = "Start/Reset";
-    resetBtn.setAttribute("data-event", eventName);
-    resetBtn.style.marginLeft = "8px";
-    resetBtn.addEventListener("click", onResetClick);
-    box.appendChild(resetBtn);
-
-    container.appendChild(box);
+    // Initialize display as 00:00
+    updateDisplay();
   });
 });
