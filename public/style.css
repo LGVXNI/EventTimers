@@ -1,140 +1,156 @@
-/* Reset */
+/* Basic Reset */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Body styling */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f5f6fa;
+  background: #f5f5f5;
   padding: 20px;
-  color: #222;
+  color: #333;
 }
 
-/* Page title */
 h1 {
   text-align: center;
   margin-bottom: 30px;
-  font-size: 2rem;
-  color: #333;
+  font-weight: 700;
+  font-size: 2.5rem;
 }
 
-/* Container for all timers */
-#timerContainer {
-  max-width: 700px;
+.container {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: nowrap;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.column {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  flex: 1 1 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  max-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-/* Each timer box */
-.timer-box {
-  background-color: #f0f4ff;
-  border-radius: 6px;
-  padding: 15px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Timer name */
-.timer-box > div:first-child {
-  flex: 1;
-  font-weight: bold;
-  font-size: 1.1rem;
-  color: #0078d7;
-}
-
-/* Timer display */
-.timer-display {
-  width: 90px;
-  font-weight: bold;
-  font-size: 1.2rem;
+.column h2 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
   text-align: center;
-  color: #333;
+  color: #222;
+}
+
+.timer-box {
+  background: #e9ecef;
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #444;
+}
+
+.input-time {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.input-time:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 6px #007bff;
+}
+
+.time {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #222;
+  text-align: center;
   user-select: none;
+  min-height: 28px;
 }
 
-/* Flashing effect for timers ≤ 3 minutes */
-.timer-display.flashing {
-  animation: flashRed 1s infinite alternate;
+.time.flash {
+  animation: flash-red 1s infinite alternate;
+  color: #d9534f;
 }
 
-@keyframes flashRed {
+@keyframes flash-red {
   from {
-    color: #d32f2f;
+    color: #d9534f;
   }
   to {
-    color: #ff8a80;
+    color: #f44336;
   }
 }
 
-/* Buttons */
-.timer-box button {
-  padding: 7px 14px;
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.controls button {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.9rem;
   border: none;
   border-radius: 5px;
-  font-weight: bold;
-  font-size: 0.9rem;
   cursor: pointer;
-  user-select: none;
+  font-weight: 600;
   transition: background-color 0.3s ease;
+  user-select: none;
 }
 
-/* Start button */
-.timer-box button:nth-of-type(1) {
-  background-color: #4caf50;
+.controls button.start {
+  background-color: #28a745;
   color: white;
 }
 
-.timer-box button:nth-of-type(1):hover {
-  background-color: #388e3c;
+.controls button.start:hover {
+  background-color: #218838;
 }
 
-/* Pause button */
-.timer-box button:nth-of-type(2) {
-  background-color: #ff9800;
+.controls button.pause {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.controls button.pause:hover {
+  background-color: #e0a800;
+}
+
+.controls button.reset {
+  background-color: #dc3545;
   color: white;
 }
 
-.timer-box button:nth-of-type(2):hover {
-  background-color: #f57c00;
+.controls button.reset:hover {
+  background-color: #c82333;
 }
 
-/* Reset button */
-.timer-box button:nth-of-type(3) {
-  background-color: #f44336;
-  color: white;
-}
-
-.timer-box button:nth-of-type(3):hover {
-  background-color: #d32f2f;
-}
-
-/* Responsive for small screens */
-@media (max-width: 500px) {
-  #timerContainer {
-    max-width: 100%;
-    padding: 0 10px;
+@media (max-width: 900px) {
+  .container {
+    flex-wrap: wrap;
+    justify-content: center;
   }
-
-  .timer-box {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .timer-display {
-    width: 100%;
-    text-align: left;
-  }
-
-  .timer-box button {
-    width: 100%;
+  .column {
+    max-width: 90vw;
+    margin-bottom: 20px;
   }
 }
