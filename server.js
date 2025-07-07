@@ -4,15 +4,20 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));  // Serve frontend files
 
-// Create DB connection
-const db = new sqlite3.Database('timers.db');
+// Create DB connection with error handling
+const db = new sqlite3.Database('timers.db', (err) => {
+  if (err) {
+    console.error('Failed to open database:', err.message);
+    process.exit(1);
+  }
+});
 
 // Create table if it doesn't exist
 db.run(`
@@ -57,10 +62,6 @@ app.get('/api/timers', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
 // Delete a timer
 app.delete('/api/timers/:id', (req, res) => {
   const id = req.params.id;
@@ -79,4 +80,9 @@ app.put('/api/timers/:id/reset', (req, res) => {
     if (err) return res.status(500).send("Error resetting timer");
     res.sendStatus(200);
   });
+});
+
+// Start the server after all routes defined
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
