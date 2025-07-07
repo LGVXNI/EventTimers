@@ -1,93 +1,120 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Store interval IDs for each timer box to control individually
-  const timers = new Map();
+const API_URL = '/api/timers';
 
-  // Helper to format milliseconds to "MM:SS"
+document.addEventListener('DOMContentLoaded', () => {
+  const timers = new Map(); // Store interval IDs per timer id
+
+  const FLASH_THRESHOLD = 3 * 60 * 1000; // 3 minutes in ms
+
+  // Format ms to MM:SS
   function formatTime(ms) {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
   }
 
-  // Flash threshold in ms (3 minutes)
-  const FLASH_THRESHOLD = 3 * 60 * 1000;
+  // Load timers from backend
+  function loadTimers() {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('timerContainer');
+        container.innerHTML = '';
 
-  // Select all timer boxes
-  document.querySelectorAll('.timer-box').forEach(box => {
-    const input = box.querySelector('.input-time');
-    const timeDisplay = box.querySelector('.time');
-    const startBtn = box.querySelector('.start');
-    const pauseBtn = box.querySelector('.pause');
-    const resetBtn = box.querySelector('.reset');
+        data.forEach(timer => {
+          // Create timer elements
+          const box = document.createElement('div');
+          box.className = 'timer-box';
+          box.dataset.id = timer.id;
 
-    let remainingTime = 0;
-    let intervalId = null;
-    let isPaused = true;
+          const nameEl = document.createElement('div');
+          nameEl.textContent = timer.name;
+          nameEl.style.fontWeight = 'bold';
 
-    function updateDisplay() {
-      timeDisplay.textContent = formatTime(remainingTime);
-      // Handle flashing effect
-      if (remainingTime <= FLASH_THRESHOLD && remainingTime > 0) {
-        timeDisplay.classList.add('flashing');
-      } else {
-        timeDisplay.classList.remove('flashing');
-      }
-    }
+          const timeEl = document.createElement('div');
+          timeEl.className = 'timer-display';
+          timeEl.textContent = formatTime(timer.timeLeft);
 
-    function tick() {
-      if (!isPaused) {
-        remainingTime -= 1000;
-        if (remainingTime <= 0) {
-          remainingTime = 0;
-          clearInterval(intervalId);
-          intervalId = null;
-          isPaused = true;
-          updateDisplay();
-          // Optional: alert or notify timer ended here
-        } else {
-          updateDisplay();
-        }
-      }
-    }
+          const startBtn = document.createElement('button');
+          startBtn.textContent = 'Start';
 
-    startBtn.addEventListener('click', () => {
-      // If timer not running, start it
-      if (intervalId === null) {
-        // If first start or after reset, get value from input
-        if (remainingTime <= 0) {
-          const minutes = parseInt(input.value);
-          if (isNaN(minutes) || minutes <= 0) {
-            alert('Please enter a positive number of minutes');
-            return;
+          const pauseBtn = document.createElement('button');
+          pauseBtn.textContent = 'Pause';
+
+          const resetBtn = document.createElement('button');
+          resetBtn.textContent = 'Reset';
+
+          box.appendChild(nameEl);
+          box.appendChild(timeEl);
+          box.appendChild(startBtn);
+          box.appendChild(pauseBtn);
+          box.appendChild(resetBtn);
+          container.appendChild(box);
+
+          // Clear existing interval if any
+          if (timers.has(timer.id)) {
+            clearInterval(timers.get(timer.id));
+            timers.delete(timer.id);
           }
-          remainingTime = minutes * 60 * 1000;
-          updateDisplay();
-        }
-        isPaused = false;
-        intervalId = setInterval(tick, 1000);
-      } else {
-        // Resume if paused
-        if (isPaused) {
-          isPaused = false;
-        }
-      }
-    });
 
-    pauseBtn.addEventListener('click', () => {
-      isPaused = true;
-    });
+          let remaining = timer.timeLeft;
+          let running = remaining > 0;
 
-    resetBtn.addEventListener('click', () => {
-      isPaused = true;
-      clearInterval(intervalId);
-      intervalId = null;
-      remainingTime = 0;
-      updateDisplay();
-      input.value = '';
-    });
+          function updateUI() {
+            timeEl.textContent = formatTime(remaining);
+            if (remaining <= FLASH_THRESHOLD && remaining > 0) {
+              timeEl.classList.add('flashing');
+            } else {
+              timeEl.classList.remove('flashing');
+            }
+          }
 
-    // Initialize display as 00:00
-    updateDisplay();
-  });
+          function tick() {
+            if (running && remaining > 0) {
+              remaining -= 1000;
+              if (remaining <= 0) {
+                remaining = 0;
+                running = false;
+                clearInterval(timers.get(timer.id));
+                timers.delete(timer.id);
+                updateUI();
+                // Optional: alert("Time's up!");
+              } else {
+                updateUI();
+              }
+            }
+          }
+
+          if (running) {
+            timers.set(timer.id, setInterval(tick, 1000));
+          }
+
+          updateUI();
+
+          startBtn.addEventListener('click', () => {
+            if (!running && remaining > 0) {
+              running = true;
+              timers.set(timer.id, setInterval(tick, 1000));
+            }
+          });
+
+          pauseBtn.addEventListener('click', () => {
+            running = false;
+            if (timers.has(timer.id)) {
+              clearInterval(timers.get(timer.id));
+              timers.delete(timer.id);
+            }
+          });
+
+          resetBtn.addEventListener('click', () => {
+            fetch(`${API_URL}/${timer.id}/reset`, { method: 'PUT' })
+              .then(() => loadTimers()) // reload timers after reset
+              .catch(console.error);
+          });
+        });
+      })
+      .catch(console.error);
+  }
+
+  loadTimers();
 });
